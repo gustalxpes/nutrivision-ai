@@ -1,0 +1,16 @@
+{
+    "name": "Nutri+",
+    "short_name": "Nutri+",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0B0F0B",
+    "theme_color": "#0B0F0B",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/icon.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ]
+}

@@ -4,7 +4,7 @@ import { AnalysisResult, Recipe } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const modelName = 'gemini-2.5-flash';
+const modelName = 'gemini-1.5-flash';
 
 // Helper to clean base64 string
 const cleanBase64 = (base64Data: string) => {
@@ -42,8 +42,8 @@ export const analyzeFoodImage = async (base64Image: string): Promise<AnalysisRes
             protein: { type: Type.NUMBER, description: "Proteínas em gramas (apenas números)" },
             carbs: { type: Type.NUMBER, description: "Carboidratos em gramas (apenas números)" },
             fat: { type: Type.NUMBER, description: "Gorduras em gramas (apenas números)" },
-            ingredients: { 
-              type: Type.ARRAY, 
+            ingredients: {
+              type: Type.ARRAY,
               items: { type: Type.STRING },
               description: "Lista dos ingredientes identificados"
             }
@@ -87,10 +87,10 @@ export const findFitnessRecipes = async (ingredients: string, dietaryType?: stri
               carbs: { type: Type.NUMBER },
               fat: { type: Type.NUMBER },
               ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
-              instructions: { 
-                type: Type.ARRAY, 
+              instructions: {
+                type: Type.ARRAY,
                 items: { type: Type.STRING },
-                description: "Lista ordenada de passos para o preparo" 
+                description: "Lista ordenada de passos para o preparo"
               }
             },
             required: ["name", "description", "timeToCook", "difficulty", "calories", "protein", "carbs", "fat", "ingredients", "instructions"]

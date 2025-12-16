@@ -10,7 +10,7 @@ console.log("Initializing Gemini with Key:", apiKey ? apiKey.substring(0, 4) + "
 
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-pro",
   generationConfig: {
     responseMimeType: "application/json"
   }

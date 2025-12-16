@@ -1,14 +1,18 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { AnalysisResult, Recipe } from "../types";
 
-const apiKey = process.env.API_KEY;
+const apiKey = process.env.API_KEY || '';
 if (!apiKey) {
   console.error("GEMINI_API_KEY is missing!");
 }
-const ai = new GoogleGenAI({ apiKey: apiKey || '' });
 
-const modelName = 'gemini-1.5-flash';
+const genAI = new GoogleGenerativeAI(apiKey);
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  generationConfig: {
+    responseMimeType: "application/json"
+  }
+});
 
 // Helper to clean base64 string
 const cleanBase64 = (base64Data: string) => {
@@ -19,36 +23,37 @@ export const analyzeFoodImage = async (base64Image: string): Promise<AnalysisRes
   const cleanImage = cleanBase64(base64Image);
 
   try {
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              mimeType: 'image/jpeg',
-              data: cleanImage
+    const prompt = `Analise esta imagem de comida. Identifique o prato, estime o tamanho da porção (ex: 200g, 1 prato, 2 fatias) e calcule os valores nutricionais para essa porção específica. Retorne um objeto JSON. As descrições e nomes devem estar em Português do Brasil.`;
+
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: "image/jpeg",
+                data: cleanImage
+              }
             }
-          },
-          {
-            text: `Analise esta imagem de comida. Identifique o prato, estime o tamanho da porção (ex: 200g, 1 prato, 2 fatias) e calcule os valores nutricionais para essa porção específica. Retorne um objeto JSON. As descrições e nomes devem estar em Português do Brasil.`
-          }
-        ]
-      },
-      config: {
-        responseMimeType: 'application/json',
+          ]
+        }
+      ],
+      generationConfig: {
         responseSchema: {
-          type: Type.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-            foodName: { type: Type.STRING, description: "Nome do prato" },
-            portion: { type: Type.STRING, description: "Estimativa do tamanho da porção (ex: 150g)" },
-            description: { type: Type.STRING, description: "Breve descrição visual" },
-            calories: { type: Type.NUMBER, description: "Calorias estimadas (apenas números)" },
-            protein: { type: Type.NUMBER, description: "Proteínas em gramas (apenas números)" },
-            carbs: { type: Type.NUMBER, description: "Carboidratos em gramas (apenas números)" },
-            fat: { type: Type.NUMBER, description: "Gorduras em gramas (apenas números)" },
+            foodName: { type: SchemaType.STRING, description: "Nome do prato" },
+            portion: { type: SchemaType.STRING, description: "Estimativa do tamanho da porção (ex: 150g)" },
+            description: { type: SchemaType.STRING, description: "Breve descrição visual" },
+            calories: { type: SchemaType.NUMBER, description: "Calorias estimadas (apenas números)" },
+            protein: { type: SchemaType.NUMBER, description: "Proteínas em gramas (apenas números)" },
+            carbs: { type: SchemaType.NUMBER, description: "Carboidratos em gramas (apenas números)" },
+            fat: { type: SchemaType.NUMBER, description: "Gorduras em gramas (apenas números)" },
             ingredients: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
+              type: SchemaType.ARRAY,
+              items: { type: SchemaType.STRING },
               description: "Lista dos ingredientes identificados"
             }
           },
@@ -57,10 +62,9 @@ export const analyzeFoodImage = async (base64Image: string): Promise<AnalysisRes
       }
     });
 
-    if (response.text) {
-      return JSON.parse(response.text) as AnalysisResult;
-    }
-    throw new Error("Sem resposta de texto do Gemini");
+    const text = result.response.text();
+    return JSON.parse(text) as AnalysisResult;
+
   } catch (error) {
     console.error("Erro ao analisar comida:", error);
     throw error;
@@ -68,32 +72,29 @@ export const analyzeFoodImage = async (base64Image: string): Promise<AnalysisRes
 };
 
 export const findFitnessRecipes = async (ingredients: string, dietaryType?: string): Promise<Recipe[]> => {
-  // Atualizado para pedir instruções e ser flexível
   const prompt = `Sugira 3 receitas fitness saudáveis que utilizem PRINCIPALMENTE estes ingredientes: ${ingredients}. Você pode adicionar outros ingredientes comuns de despensa se necessário para completar a receita. Inclua o modo de preparo passo a passo. Retorne JSON válido. O idioma deve ser Português do Brasil.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
         responseSchema: {
-          type: Type.ARRAY,
+          type: SchemaType.ARRAY,
           items: {
-            type: Type.OBJECT,
+            type: SchemaType.OBJECT,
             properties: {
-              name: { type: Type.STRING },
-              description: { type: Type.STRING },
-              timeToCook: { type: Type.STRING },
-              difficulty: { type: Type.STRING },
-              calories: { type: Type.NUMBER },
-              protein: { type: Type.NUMBER },
-              carbs: { type: Type.NUMBER },
-              fat: { type: Type.NUMBER },
-              ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
+              name: { type: SchemaType.STRING },
+              description: { type: SchemaType.STRING },
+              timeToCook: { type: SchemaType.STRING },
+              difficulty: { type: SchemaType.STRING },
+              calories: { type: SchemaType.NUMBER },
+              protein: { type: SchemaType.NUMBER },
+              carbs: { type: SchemaType.NUMBER },
+              fat: { type: SchemaType.NUMBER },
+              ingredients: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
               instructions: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
+                type: SchemaType.ARRAY,
+                items: { type: SchemaType.STRING },
                 description: "Lista ordenada de passos para o preparo"
               }
             },
@@ -103,10 +104,9 @@ export const findFitnessRecipes = async (ingredients: string, dietaryType?: stri
       }
     });
 
-    if (response.text) {
-      return JSON.parse(response.text) as Recipe[];
-    }
-    return [];
+    const text = result.response.text();
+    return JSON.parse(text) as Recipe[];
+
   } catch (error) {
     console.error("Erro ao buscar receitas:", error);
     throw error;

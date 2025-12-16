@@ -9,9 +9,8 @@ if (!apiKey) {
 console.log("Initializing Gemini with Key:", apiKey ? "Basim..." + apiKey.slice(-4) : "MISSING");
 
 const genAI = new GoogleGenerativeAI(apiKey);
-// Trying gemini-pro as a fallback to test connectivity
 const model = genAI.getGenerativeModel({
-  model: "gemini-pro",
+  model: "gemini-1.5-flash",
   generationConfig: {
     responseMimeType: "application/json"
   }
@@ -68,8 +67,11 @@ export const analyzeFoodImage = async (base64Image: string): Promise<AnalysisRes
     const text = result.response.text();
     return JSON.parse(text) as AnalysisResult;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao analisar comida:", error);
+    if (error.message?.includes("404")) {
+      throw new Error("Modelo de IA não encontrado. Verifique se a API 'Generative Language' está habilitada no Google Cloud Console para esta chave.");
+    }
     throw error;
   }
 };

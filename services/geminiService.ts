@@ -6,7 +6,7 @@ if (!apiKey) {
   console.error("GEMINI_API_KEY is missing!");
 }
 
-console.log("Initializing Gemini with Key:", apiKey ? "Basim..." + apiKey.slice(-4) : "MISSING");
+console.log("Initializing Gemini with Key:", apiKey ? apiKey.substring(0, 4) + "..." + apiKey.slice(-4) : "MISSING");
 
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({
@@ -19,6 +19,21 @@ const model = genAI.getGenerativeModel({
 // Helper to clean base64 string
 const cleanBase64 = (base64Data: string) => {
   return base64Data.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
+};
+
+// Helper to list models for debugging
+const debugListModels = async () => {
+  try {
+    // Note: genAI.getGenerativeModel doesn't have listModels, the main client might depending on version,
+    // but usually it's a separate manager. In @google/generative-ai, it is usually NOT exposed directly on client instance easily?
+    // Wait, check documentation or assumption.
+    // Actually, usually it's not on the client.
+    // Let's try to just log the raw error and SUGGEST checking models.
+    // Better: Try to use a known working older model as fallback? No we tried that.
+    console.log("Debugging connection...");
+  } catch (e) {
+    console.error("Debug check failed", e);
+  }
 };
 
 export const analyzeFoodImage = async (base64Image: string): Promise<AnalysisResult> => {

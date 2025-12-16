@@ -6,9 +6,12 @@ if (!apiKey) {
   console.error("GEMINI_API_KEY is missing!");
 }
 
+console.log("Initializing Gemini with Key:", apiKey ? "Basim..." + apiKey.slice(-4) : "MISSING");
+
 const genAI = new GoogleGenerativeAI(apiKey);
+// Trying gemini-pro as a fallback to test connectivity
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-pro",
   generationConfig: {
     responseMimeType: "application/json"
   }

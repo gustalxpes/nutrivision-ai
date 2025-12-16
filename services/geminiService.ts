@@ -2,7 +2,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult, Recipe } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = process.env.API_KEY;
+if (!apiKey) {
+  console.error("GEMINI_API_KEY is missing!");
+}
+const ai = new GoogleGenAI({ apiKey: apiKey || '' });
 
 const modelName = 'gemini-1.5-flash';
 
